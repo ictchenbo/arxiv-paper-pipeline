@@ -62,10 +62,10 @@ pip install -r requirements.txt
 ### 6. 启动服务
 ```bash
 # 1. 启动自动下载服务（默认从当前月开始下载）
-python src/main.py downloader &
+python src/main.py download &
 
 # 2. 启动文件扫描监测服务（HTML直接解析，PDF入队）
-python src/main.py scanner &
+python src/main.py scan &
 
 # 3. 启动PDF解析消费者（多线程并行调用MinerU集群）
 # 可多实例部署，线性提升PDF解析吞吐
