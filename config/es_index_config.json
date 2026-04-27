@@ -1,0 +1,74 @@
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1,
+    "index": {
+      "refresh_interval": "30s",
+      "number_of_routing_shards": 30,
+      "query": {
+        "default_field": ["title", "abstract", "content_text"]
+      }
+    }
+  },
+  "mappings": {
+    "_routing": {
+      "required": true
+    },
+    "properties": {
+      "paper_id": {"type": "keyword", "store": true},
+      "title": {
+        "type": "text",
+        "analyzer": "standard",
+        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}
+      },
+      "authors": {"type": "nested"},
+      "categories": {"type": "object"},
+      "submitted_date": {"type": "date"},
+      "updated_date": {"type": "date"},
+      "doi": {"type": "keyword"},
+      "journal_ref": {"type": "keyword"},
+      "comment": {"type": "text", "index": false},
+      "abstract": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "content_text": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "content_markdown": {"type": "text", "index": false},
+      "references": {"type": "object", "enabled": false},
+      "figures": {"type": "object", "enabled": false},
+      "tables": {"type": "object", "enabled": false},
+      "abstract_vector": {
+        "type": "dense_vector",
+        "dims": {{VECTOR_DIM}},
+        "index": true,
+        "similarity": "cosine",
+        "index_options": {
+          "type": "hnsw",
+          "m": 16,
+          "ef_construction": 100
+        }
+      },
+      "content_chunks": {
+        "type": "nested",
+        "properties": {
+          "chunk_id": {"type": "integer", "doc_values": false},
+          "text": {"type": "text", "index": false},
+          "vector": {
+            "type": "dense_vector",
+            "dims": {{VECTOR_DIM}},
+            "index": false
+          }
+        }
+      },
+      "file_type": {"type": "keyword"},
+      "file_path": {"type": "keyword", "doc_values": false},
+      "file_size": {"type": "integer", "doc_values": false},
+      "parsed_at": {"type": "date"},
+      "created_at": {"type": "date"},
+      "updated_at": {"type": "date"}
+    }
+  }
+}

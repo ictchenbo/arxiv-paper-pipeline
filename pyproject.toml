@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arxiv-paper-pipeline"
+version = "0.1.0"
+authors = [
+  { name="Chenbo", email="chenbo01@ict.ac.cn" }
+]
+description = "arXiv论文采集、解析、入库全链路pipeline"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2.0.0",
+  "pyyaml>=6.0",
+  "loguru>=0.7.0",
+  "tenacity>=8.0.0",
+  "python-dotenv>=1.0.0",
+  "kafka-python>=2.0.2",
+  "beautifulsoup4>=4.12.0",
+  "mineru>=1.0.0",
+  "markdown-it-py>=3.0.0",
+  "requests>=2.31.0",
+  "aiohttp>=3.9.0",
+  "APScheduler>=3.10.0",
+  "sentence-transformers>=2.5.0",
+  "watchdog>=3.0.0"
+]
+
+[project.scripts]
+arxiv-pipeline = "src.main:main"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

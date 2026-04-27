@@ -1,0 +1,76 @@
+# 服务基础配置
+server:
+  env: "default" # 环境标识，可通过ENV环境变量覆盖
+  log_level: "INFO" # 日志级别：DEBUG/INFO/WARNING/ERROR
+
+# Kafka配置
+kafka:
+  bootstrap_servers: "10.208.57.21:9092" # Kafka集群地址，多个用逗号分隔
+  topics:
+    pdf: "arxiv_pdf_2604" # PDF解析队列topic
+    markdown: "arxiv_markdown_2604" # Markdown处理队列topic
+  consumer_group: "arxiv_pdf_consumer" # 消费者组ID
+  max_concurrent: null # 并发处理数，默认等于MinerU节点数*2
+  max_poll_records: null # 每次拉取最大消息数，默认等于max_concurrent
+
+# 存储配置
+storage:
+  # Elasticsearch 统一存储（结构化数据+全文检索+向量检索）
+  es:
+    hosts: ["http://10.208.61.115:9200"] # ES集群地址
+    paper_index: "arxiv_all_2604" # 论文主索引名称
+    vector_dim: 1536 # 向量维度，已和Embed配置保持一致
+    username: "elastic" # ES用户名，不需要认证则留空
+    password: "golaxyintelligence" # ES密码，不需要认证则留空
+
+# arXiv 相关配置
+arxiv:
+  api_url: "https://export.arxiv.org/api/query" # arXiv元数据API地址
+  request_interval: 7 # 请求间隔，单位秒，最低7秒避免被封禁
+  max_missing_count: 10 # 连续ID不存在阈值，超过判定当月采集完成
+  current_month_wait: 600 # 当前月扫描完成后等待时间，单位秒，默认10分钟
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" # 请求UA，模拟浏览器
+  download_types: ["html", "pdf"] # 优先下载类型，优先html，不存在下pdf
+
+# 下载配置
+download:
+  save_dir: "./data/downloads" # 文件保存根目录，自动按yymm分子目录
+  auto_download: true # 是否自动下载
+  download_concurrency: 1 # 下载并发数，强制1避免请求过快
+  start_month: "" # 起始采集月份，格式yymm，如"2601"，空则默认当前月
+  progress_file: "./data/download_progress.json" # 下载进度持久化文件路径
+
+# 文件扫描监测配置
+scan:
+  scan_interval: 60 # 全量兜底扫描间隔，单位秒，默认1分钟扫描一次所有文件
+  processed_file_record: "./data/processed_files.json" # 已处理文件记录持久化路径
+  min_file_age: 3 # 新文件等待稳定时间，单位秒，避免处理还在写入的半截文件
+
+# MinerU API集群配置
+mineru:
+  api_servers: ["http://10.208.62.156:6331"] # MinerU API集群地址列表，多个直接加即可
+  api_path: "/api/file/_extract" # PDF解析接口路径
+  health_check_path: "/" # 服务健康检查接口路径
+  api_timeout: 300 # 单请求超时时间，单位秒，PDF解析较慢建议设大一点
+  max_retry: 3 # 失败重试次数，自动切换其他节点重试
+  load_balance_strategy: "least_conn" # 负载策略：least_conn(优先空闲服务，推荐)/round_robin(轮询)
+  health_check_interval: 60 # 服务健康检查间隔，单位秒
+  shared_storage: false # 是否共享存储，是则直接传文件路径，否则上传文件内容
+  auth_token: "" # 可选，API鉴权token，不需要则留空
+
+# 解析配置
+parser:
+  pdf_parser: "mineru" # PDF解析器，固定为mineru
+  chunk_size: 1000 # 正文拆分chunk大小，单位字符
+  chunk_overlap: 200 # chunk重叠大小，单位字符
+  metadata_complement: true # 是否开启元数据自动补全
+
+# 向量化配置（OpenAI兼容接口）
+embed:
+  base_url: "http://10.208.62.156:6008/v1" # API地址，支持所有兼容OpenAI规范的服务
+  api_key: "sk-aaabbbcccdddeeefffggghhhiiijjjkkk" # API密钥
+  model: "bge-large-en-v1.5" # Embedding模型名称
+  vector_dim: 1536 # 模型输出向量维度，必须和实际模型匹配
+  batch_size: 10 # 批量向量化最大请求数
+  timeout: 60 # 请求超时时间，单位秒
+  max_input_length: 8191 # 模型最大输入token数，超过自动截断
